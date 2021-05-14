@@ -6,7 +6,7 @@ import Combine
 class SomeSubject {
     var someSubjectPublisher: AnyPublisher<Int, Never> {
         passthroughSubject.eraseToAnyPublisher()
-    }
+    } // abstracting subjects and converting them to AnyPublisher.
     
     var currentValueSubjectPublisher: AnyPublisher<Int, Never> {
         currentValueSubject.eraseToAnyPublisher()
@@ -15,13 +15,19 @@ class SomeSubject {
     init() {
     }
     
-    private let passthroughSubject = PassthroughSubject<Int, Never>()
+    private let passthroughSubject = PassthroughSubject<Int, Never>() // starts with no value
     
-    private let currentValueSubject = CurrentValueSubject<Int, Never>(100)
+    private let currentValueSubject = CurrentValueSubject<Int, Never>(100) // used when we want to start with default or current value.
     
     func fetch() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
             self?.passthroughSubject.send(10)
+            
+            let subscription = Subscriptions.empty
+            
+            self?.passthroughSubject.send(subscription: subscription)
+            
+            self?.passthroughSubject.send(completion: Subscribers.Completion<Never>.finished)
         }
     }
 }
