@@ -3,11 +3,37 @@
 import Foundation
 import Combine
 
-class CombineOperators {
-    
+var cancellables = Set<AnyCancellable>()
+
+enum SomeError: Error {
+    case Unknown
 }
 
-let operators = CombineOperators()
+let publisher = Just("Vinay Hosamane")
+
+publisher
+    .map({ (value) in
+        Fail(outputType: SomeError.self, failure: SomeError.Unknown)
+    })
+    .retry(2)
+    .sink { (completion) in
+        switch completion {
+        case .failure(let error):
+            print(error)
+        default:
+            print("Finished")
+        }
+    } receiveValue: { (someError) in
+        if case .Unknown = someError.error {
+            print("Received unknown error")
+        }
+    }.store(in: &cancellables)
+
+
+// map
+// tryMap
+// compactMap
+// switchToLatest
 
 
 //: [Next](@next)

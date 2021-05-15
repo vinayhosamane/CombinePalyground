@@ -107,4 +107,93 @@ observableObject.objectWillChange.makeConnectable().autoconnect().sink { (someVa
 
 observableObject.someValue = 100
 
+
+enum NetworkError: Error {
+    case Unkown
+    case SessionTimedOut
+    case InvalidRequest
+}
+
+struct Post: Codable {
+    var userId: Int
+    var id: Int
+    var title: String
+    var body: String
+}
+
+// usage of url session with combine
+class NetworkManager {
+    func fetchPosts(url: URL) -> AnyPublisher<[Post], Error> {
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .receive(on: DispatchQueue.main)
+            .tryMap({ (output) in
+                guard let response = output.response as? HTTPURLResponse, response.statusCode == 200 else {
+                    throw NetworkError.Unkown
+                }
+                return output.data
+            })
+            .decode(type: [Post].self, decoder: JSONDecoder())
+            .eraseToAnyPublisher()
+
+    }
+}
+
+//let networkManager = NetworkManager()
+
+//if let url = URL(string: "https://jsonplaceholder.typicode.com/posts") {
+//    networkManager.fetchPosts(url: url).sink { (completion) in
+//        switch completion {
+//        case .failure(let error):
+//            print("Network failure. -- \(error)")
+//        case .finished:
+//            print("Publisher completed.")
+//        }
+//    } receiveValue: { (posts) in
+//        print(posts)
+//    }.store(in: &cancellables)
+//}
+
+class SomeViewModel {
+    private var posts: [Post] = [] {
+        didSet {
+            print("posts ---> \(self.posts)")
+        }
+    }
+    
+    var someInt: Int = 0 {
+        didSet {
+            print(someInt)
+        }
+    }
+    
+    let networkManager: NetworkManager
+    
+    var cancellables = [AnyCancellable]()
+    
+    init(networkManager manager: NetworkManager) {
+        networkManager = manager
+    }
+    
+    func fetchPosts() {
+        guard let url = URL(string: "https://jsonplaceholder.typicode.com/posts") else {
+            return
+        }
+        networkManager.fetchPosts(url: url).sink { (completion) in
+            switch completion {
+            case .failure(let error):
+                print("Network request failed with error: \(error)")
+            default:
+                print("Network request finished.")
+            }
+        } receiveValue: { [weak self] (posts) in
+            self?.posts = posts
+        }.store(in: &cancellables)
+    }
+}
+
+let someViewModel = SomeViewModel(networkManager: NetworkManager())
+someViewModel.fetchPosts()
+
+[1, 2, 3].publisher.assign(to: \.someInt, on: someViewModel)
+
 //: [Next](@next)
