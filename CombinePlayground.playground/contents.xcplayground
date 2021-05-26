@@ -4,5 +4,8 @@
         <page name='Publishers'/>
         <page name='Subjects'/>
         <page name='Operators'/>
+        <page name='Random Things'/>
+        <page name='Use Case 1'/>
+        <page name='Assignment'/>
     </pages>
 </playground>

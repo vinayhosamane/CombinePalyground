@@ -125,7 +125,20 @@ struct Post: Codable {
 class NetworkManager {
     func fetchPosts(url: URL) -> AnyPublisher<[Post], Error> {
         return URLSession.shared.dataTaskPublisher(for: url)
-            .receive(on: DispatchQueue.main)
+            .receive(on: DispatchQueue.global())
+//            .breakpoint(receiveSubscription: { (subscription) -> Bool in
+//                print(subscription)
+//                return true
+//            }, receiveOutput: { (output) -> Bool in
+//                print(output)
+//                return true
+//            }, receiveCompletion: { (completion) -> Bool in
+//                print(completion)
+//                return true
+//            })
+            .handleEvents(receiveOutput: { (output) in
+                print(output)
+            })
             .tryMap({ (output) in
                 guard let response = output.response as? HTTPURLResponse, response.statusCode == 200 else {
                     throw NetworkError.Unkown
@@ -134,7 +147,6 @@ class NetworkManager {
             })
             .decode(type: [Post].self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
-
     }
 }
 
@@ -195,5 +207,6 @@ let someViewModel = SomeViewModel(networkManager: NetworkManager())
 someViewModel.fetchPosts()
 
 [1, 2, 3].publisher.assign(to: \.someInt, on: someViewModel)
+
 
 //: [Next](@next)
