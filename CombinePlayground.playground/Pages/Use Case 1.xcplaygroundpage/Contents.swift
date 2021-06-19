@@ -48,16 +48,16 @@ let searchManager = SearchManager()
 let filterPublisher = filterModel.$currentAppliedFilter.eraseToAnyPublisher()
 let searchQueryPublisher = searchManager.$searchQuery.eraseToAnyPublisher()
 
-// a           ab                 abc         abcd       abcde
+// a           ab          bc         abcd       abcde
 // All   Favorite
-// (abc, Favorite)
+// (abcde, Favorite)
 
 searchQueryPublisher
     .combineLatest(filterPublisher)
-//    .debounce(for: .seconds(2), scheduler: DispatchQueue.global())
+    .debounce(for: .seconds(2), scheduler: DispatchQueue.global())
     .receive(on: DispatchQueue.main)
     .sink { (searchQuery, currentAppliedFilter) in
-        print("Combined publihsers --- search bar text : \(searchQuery) -- current filter: \(currentAppliedFilter)")
+        print("Combined publishers --- search bar text : \(searchQuery) -- current filter: \(currentAppliedFilter)")
     }
     .store(in: &subscriptions)
 
@@ -79,7 +79,7 @@ class SomeViewModel {
         }
     }
     
-    init(closure block: ( () -> Void)? = nil) {
+    init(closure block: (() -> Void)? = nil) {
         updateClosure = block ?? nil
     }
     
@@ -96,5 +96,20 @@ someViewModel.updateClosure = {
 }
 
 someViewModel.updateModel("Vinay")
+
+
+struct Constants {
+    static var someValue: Any? = "true"
+}
+
+func getConstant() -> Bool {
+    guard let constant = Constants.someValue as? String,
+          let constantBool = Bool(constant) else {
+        return false
+    }
+    return constantBool
+}
+
+
 
 //: [Next](@next)

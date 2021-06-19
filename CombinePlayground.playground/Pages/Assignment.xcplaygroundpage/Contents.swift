@@ -122,7 +122,7 @@ var subscribers = [AnyCancellable]()
 let networkManager = CatalogService()
 let viewModel = CatalogListViewModel(networkManager)
 
-let modelUpdatePlublisher = viewModel.$_model.eraseToAnyPublisher()
+let modelUpdatePlublisher = viewModel.modelPublisher
 
 modelUpdatePlublisher.sink { (cards) in
     print(cards)
@@ -131,5 +131,27 @@ modelUpdatePlublisher.sink { (cards) in
 viewModel.updateModel(with: [CatalogCard(name: "Vinay"),
                              CatalogCard(name: "Ramya"),
                              CatalogCard(name: "Sindhu")])
+
+
+struct SomeStruct {
+    
+    func blahblah(callback1: () -> Void, callback2: () -> Void) {}
+    
+}
+
+let someStruct = SomeStruct()
+someStruct.blahblah {
+    //
+} callback2: {
+    //
+}
+
+someStruct.blahblah(callback1: { () in
+    //
+}, callback2: { () in
+    //
+})
+
+
 
 //: [Next](@next)
